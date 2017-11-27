@@ -1,18 +1,3 @@
-#    This file is part of EAP.
-#
-#    EAP is free software: you can redistribute it and/or modify
-#    it under the terms of the GNU Lesser General Public License as
-#    published by the Free Software Foundation, either version 3 of
-#    the License, or (at your option) any later version.
-#
-#    EAP is distributed in the hope that it will be useful,
-#    but WITHOUT ANY WARRANTY; without even the implied warranty of
-#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-#    GNU Lesser General Public License for more details.
-#
-#    You should have received a copy of the GNU Lesser General Public
-#    License along with EAP. If not, see <http://www.gnu.org/licenses/>.
-
 import operator
 import math
 import random
@@ -70,7 +55,7 @@ toolbox.decorate("mate", gp.staticLimit(key=operator.attrgetter("height"), max_v
 toolbox.decorate("mutate", gp.staticLimit(key=operator.attrgetter("height"), max_value=17))
 
 def main():
-    random.seed(318)
+    random.seed()
 
     pop = toolbox.population(n=300)
     hof = tools.HallOfFame(1)
@@ -87,8 +72,10 @@ def main():
                                    halloffame=hof, verbose=True) 
     #print log
     print '\nBest individual seen:'
-    print hof
-    print gp.PrimitiveSet
+    print hof.__getitem__(0)
+    print '\nEval this individual:'
+    eval = toolbox.compile(hof.__getitem__(0))
+    print eval(1)
 
     return pop, log, hof
 
