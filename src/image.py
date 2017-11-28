@@ -1,12 +1,13 @@
 #=============================================================
 #
-#
+# Date created: 27/11/2017
 # Author: Saulo Pereira {scrps@cin.ufpe.br}
 #=============================================================
 
 from deap import gp
 from opencv import cv2
 
+def 
 
 #>Descriptor computation
 img = cv2.imread('./../data/1.1.01.tiff', cv2.IMREAD_GRAYSCALE)
