@@ -1,12 +1,12 @@
-#==================================================================================================
+#!/usr/bin/env python
 # Image Descriptor: A Genetic Programming Approach to Multiclass Texture Classification
 # 
 # Date created: 28/11/2017
 # Code author: Saulo Pereira {scrps@cin.ufpe.br}
 #==================================================================================================
 
-import operator
 import itertools
+import operator
 from deap import base, creator, gp, tools
 
 #>Algorithm parameters
