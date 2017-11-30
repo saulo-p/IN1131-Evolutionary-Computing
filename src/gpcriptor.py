@@ -7,12 +7,8 @@
 
 import itertools
 import operator
-from deap import base, creator, gp, tools
 
-#>Algorithm parameters
-# Constants (TODO: use as arguments, not global variables)
-kNF = 4
-kWS = 3
+from deap import base, creator, gp, tools
 
 #>Functions (TODO: create separate file if necessary)
 def protectedDiv(num, den):
@@ -29,25 +25,41 @@ def codeFunction(*args):
 # return type must be a class.
 # return type must be hashable, so lists which are dynamic elements are not allowed.
 
-#>Function set (terminals come via evaluation)
-pset = gp.PrimitiveSetTyped("GP-criptor", itertools.repeat(float, kWS**2), tuple, "Px")
-# Arithmetic operations
-pset.addPrimitive(operator.add, [float, float], float)
-pset.addPrimitive(operator.sub, [float, float], float)
-pset.addPrimitive(operator.mul, [float, float], float)
-pset.addPrimitive(protectedDiv, [float, float], float)
-# Root node
-pset.addPrimitive(codeFunction, [float]*kNF, tuple)
+# Function description test
+def CreatePrimitiveSet (window_size, code_size):
+    kCS = code_size
+    kWS = window_size
 
+    #>Function set (terminals come via evaluation)
+    pset = gp.PrimitiveSetTyped("GP-criptor", itertools.repeat(float, kWS**2), tuple, "Px")
+    # Arithmetic operations
+    pset.addPrimitive(operator.add, [float, float], float)
+    pset.addPrimitive(operator.sub, [float, float], float)
+    pset.addPrimitive(operator.mul, [float, float], float)
+    pset.addPrimitive(protectedDiv, [float, float], float)
+    # Root node
+    pset.addPrimitive(codeFunction, [float]*kCS, tuple)
 
-#>Evolution toolbox
-tbox = base.Toolbox()
-tbox.register("generate_expr", gp.genFull, pset, min_=2, max_=3)
-tbox.register("generate_tree", tools.initIterate, gp.PrimitiveTree, tbox.generate_expr)
+    return pset
 
-#>TEST: Print individual generated from toolbox interface
-expr = tbox.generate_tree()
-print expr
-peval = gp.compile(expr,pset)
-print 'List: ', peval(0,1,2,3,4,5,6,7,8)
-#------------------------------------------              
+def DefineEvolutionToolbox (primitive_set):
+    tbox = base.Toolbox()
+    tbox.register("generate_expr", gp.genFull, primitive_set, min_=2, max_=3)
+    tbox.register("generate_tree", tools.initIterate, gp.PrimitiveTree, tbox.generate_expr)
+    # ...
+
+    return tbox    
+
+#>TESTS: -----------------------------------------------------
+
+# #>Evolution toolbox
+# pset = createPrimitiveSet(3,4)
+# tbox = base.Toolbox()
+# tbox.register("generate_expr", gp.genFull, pset, min_=2, max_=3)
+# tbox.register("generate_tree", tools.initIterate, gp.PrimitiveTree, tbox.generate_expr)
+
+# # Print individual generated from toolbox interface
+# expr = tbox.generate_tree()
+# print expr
+# peval = gp.compile(expr,pset)
+# print 'List: ', peval(0,1,2,3,4,5,6,7,8)
