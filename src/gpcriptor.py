@@ -25,7 +25,7 @@ def codeFunction(*args):
 # return type must be a class.
 # return type must be hashable, so lists which are dynamic elements are not allowed.
 
-# Function description test
+# Function description test  (TODO: aprender a fazer comentario aparecer no preview) 
 def CreatePrimitiveSet (window_size, code_size):
     kCS = code_size
     kWS = window_size

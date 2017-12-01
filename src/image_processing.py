@@ -15,19 +15,26 @@ def LinearWindow(img, window_size, (row, col)):
     return window.reshape(1, WS**2)[0]
 
 
-
 __all__ = ['LinearWindow']
 
-#> TESTS: -----------------------------------------------------
+#> Script portion: ----------------------------------------------
 
-# kWS = 5
+#>Data preparation 
+# Resample Brodatz input images
+data_path = './../data/brodatz/'
 
-# #>Input data
-# img = cv2.imread('./../data/1.1.01.tiff', cv2.IMREAD_GRAYSCALE)
-# # cv2.imshow('Test', img)
-# # cv2.waitKey(0)
+WS = 64
+for i in range(1,112+1):
+    if (i == 14):
+        continue
 
-# WH = img.shape
-# height_w = WH[0] - kWS/2
-# width_w = WH[1] - kWS/2
-# # print width_w
+    img = cv2.imread(data_path + 'D' + str(i) +'.bmp', cv2.IMREAD_GRAYSCALE)
+
+    for rb in range(0, 10):
+        for cb in range(0, 10):
+            img_block = img[rb*WS:(rb+1)*WS, cb*WS:(cb+1)*WS]
+            # cv2.imshow('Test Image', img_block)
+            # cv2.waitKey(0)
+
+            cv2.imwrite(data_path + 'resampled/D' +
+              str(i) + '_' + str(rb) + '_' + str(cb) + '.bmp' , img_block)

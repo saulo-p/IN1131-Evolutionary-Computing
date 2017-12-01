@@ -11,7 +11,7 @@ import numpy as np
 import gpcriptor as gpc
 import image_processing as imp 
 
-def ComputeFeatureVector(img, individual_lambda, code_size, window_size):
+def FeatureExtraction(img, individual_lambda, code_size, window_size):
     kCS = code_size
     kWS = window_size
 
@@ -47,7 +47,7 @@ kCS = 2
 kWS = 3
 
 #>Input data:
-img = cv2.imread('./../data/1.1.01.tiff', cv2.IMREAD_GRAYSCALE)
+img = cv2.imread('./../data/brodatz/D1.bmp', cv2.IMREAD_GRAYSCALE)
 img = cv2.normalize(img.astype('float'), None, 0.0, 1.0, cv2.NORM_MINMAX)
 # cv2.imshow('Test Image', img)
 # cv2.waitKey(0)
@@ -63,4 +63,4 @@ print 'Expression:\n', rand_tree
 peval = gp.compile(rand_tree, pset)
 
 #>Test cases:
-print ComputeFeatureVector(img, peval, kCS, kWS)
+print FeatureExtraction(img, peval, kCS, kWS)

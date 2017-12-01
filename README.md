@@ -7,6 +7,8 @@ Requirements:
     -pip install deap
 -OpenCV library
 
-
 References:
 http://deap.readthedocs.io/en/master/tutorials/advanced/gp.html
+
+Data:
+Dropbox e pendrive
