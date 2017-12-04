@@ -17,24 +17,23 @@ def LinearWindow(img, window_size, (row, col)):
 
 __all__ = ['LinearWindow']
 
-#> Script portion: ----------------------------------------------
+#>Data preparation script: ----------------------------------------------
 
-#>Data preparation 
-# Resample Brodatz input images
-data_path = './../data/brodatz/'
+# # Resample Brodatz input images
+# data_path = './../data/brodatz/'
 
-WS = 64
-for i in range(1,112+1):
-    if (i == 14):
-        continue
+# WS = 64
+# for i in range(1,112+1):
+#     if (i == 14):
+#         continue
 
-    img = cv2.imread(data_path + 'D' + str(i) +'.bmp', cv2.IMREAD_GRAYSCALE)
+#     img = cv2.imread(data_path + 'D' + str(i) +'.bmp', cv2.IMREAD_GRAYSCALE)
 
-    for rb in range(0, 10):
-        for cb in range(0, 10):
-            img_block = img[rb*WS:(rb+1)*WS, cb*WS:(cb+1)*WS]
-            # cv2.imshow('Test Image', img_block)
-            # cv2.waitKey(0)
+#     for rb in range(0, 10):
+#         for cb in range(0, 10):
+#             img_block = img[rb*WS:(rb+1)*WS, cb*WS:(cb+1)*WS]
+#             # cv2.imshow('Test Image', img_block)
+#             # cv2.waitKey(0)
 
-            cv2.imwrite(data_path + 'resampled/D' +
-              str(i) + '_' + str(rb) + '_' + str(cb) + '.bmp' , img_block)
+#             cv2.imwrite(data_path + 'resampled/D' +
+#               str(i) + '_' + str(rb) + '_' + str(cb) + '.bmp' , img_block)
