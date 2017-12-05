@@ -14,6 +14,8 @@ def LinearWindow(img, window_size, (row, col)):
     # cv2.waitKey(50)
     return window.reshape(1, WS**2)[0]
 
+def TESTofScope():
+    return 0
 
 __all__ = ['LinearWindow']
 

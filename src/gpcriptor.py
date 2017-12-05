@@ -10,9 +10,10 @@ import operator
 
 from deap import base, creator, gp, tools
 import numpy as np
+from opencv import cv2
+from scipy.spatial.distance import pdist
 
 import image_processing as imp 
-
 
 #>Functions (TODO: create separate file if necessary)
 def protectedDiv(num, den):
@@ -28,13 +29,47 @@ def codeFunction(*args):
 # return type must be a class.
 # return type must be hashable, so lists which are dynamic elements are not allowed.
 
-def FitnessEvaluation(individual, img, code_size, window_size, toolbox)
+def FitnessEvaluation(training_instances, eval_instances, code_size, window_size, toolbox, individual):
     """Individual fitness evaluation. Based on the classification capabilities."""
-    # Generate lambda expression of current individual
+    #>Generate lambda expression of individual being evaluated
     ind_lambda = toolbox.compile(individual)
 
-    # Compute feature vector of individual
-    feature_vec = FeatureExtraction(img, ind_lambda, code_size, window_size)
+    #>Compute feature vectors of the whole test set based on current individual
+    base_path = 'C:\Users\Saulo\Documents\GitHub\IN1131-Evolutionary-Computing\data\\brodatz\\resampled\D'
+    feature_vectors = []
+    test_set = []
+    eval_set = []
+    for t_i in training_instances:
+        for i in range(0, eval_instances):
+            if (i < 10):
+                str_idx = '0' + str(i)
+            else:
+                str_idx = str(i)
+
+            # Read patch image
+            img_path = base_path + str(t_i[0]) + '_' + str_idx[0]  + '_' + str_idx[1] + '.bmp'
+            img = cv2.imread(img_path, cv2.IMREAD_GRAYSCALE)
+
+            fv = FeatureExtraction(img, ind_lambda, code_size, window_size)
+        
+            # Separate test and evaluation set
+            if (i in t_i[1]):
+                test_set = test_set + [((t_i[0], i), fv)]
+            else:
+                eval_set = eval_set + [((t_i[0], i), fv)]
+
+            feature_vectors = feature_vectors + [((t_i[0], i), fv)]
+
+    print feature_vectors         
+
+    #>Compute pdist between each individual of test set and whole evaluation set
+    for test_i in test_set:
+        #Create set with current individual + eval_set
+        #pdist()
+        print test_i
+    print 'bb'
+    #Label the individual
+
 
 
 def CreatePrimitiveSet (window_size, code_size):
@@ -54,40 +89,39 @@ def CreatePrimitiveSet (window_size, code_size):
 
     return pset
 
-def DefineEvolutionToolbox (primitive_set):
-    """TODO: Parameterize this function so it receives the evolution parameters from file/struct"""
+def DefineEvolutionToolbox (primitive_set, training_instances, eval_instances,
+    code_size, window_size):
+    """TODO: Parameterize this function so it receives the evolution parameters 
+    from file/struct"""
     #>Evolution parameters:
-    kXOverRate = 0.8
-    kMutRate = 0.2
-    kElitRate = 0.01
     kTreeMinDepth = 2
-    kTreeMaxDepth = 5 #TODO: 10
-    
-    kMaxGenerations = 3 #TODO: 30
-    kPopSize = 3 #TODO: 100
+    kTreeMaxDepth = 5           #TODO: 10    
     #TODO: create enum for categorical parameters
     # kInitialization = 'genHalfAndHalf'
     # kSelection = 'selTournament'
-    kTournamentSize = 2 #TODO: 7
+    kTournamentSize = 2         #TODO: 7
+
+    creator.create("Fitness", base.Fitness, weights=(-1.0,))
+    creator.create("Individual", gp.PrimitiveTree, fitness=creator.Fitness)
 
     tbox = base.Toolbox()
     tbox.register("generate_expr", gp.genHalfAndHalf, pset=primitive_set, 
                   min_=kTreeMinDepth, max_=kTreeMaxDepth)
-    tbox.register("generate_tree", tools.initIterate, gp.PrimitiveTree, tbox.generate_expr)
-    tbox.register("generate_population", tools.initRepeat, list, tbox.generate_tree)
+    tbox.register("generate_ind_tree", tools.initIterate, creator.Individual, 
+                  tbox.generate_expr)
+    tbox.register("generate_population", tools.initRepeat, list, tbox.generate_ind_tree)
     tbox.register("compile", gp.compile, pset = primitive_set)
-    #TODO: tbox.register("evaluate", )
+    tbox.register("evaluate", FitnessEvaluation, training_instances, eval_instances,
+        code_size, window_size, tbox )
     tbox.register("select", tools.selTournament, tournsize=kTournamentSize)
     tbox.register("mate", gp.cxOnePoint)
-    tbox.register("expr_mut", gp.genFull, min_=0, max_2)
+    tbox.register("expr_mut", gp.genFull, min_=0, max_=2)
     tbox.register("mutate", gp.mutUniform, expr=tbox.expr_mut, pset=primitive_set)
-
     #enforce size constraint over generated individuals
     tbox.decorate("mate", gp.staticLimit(key=operator.attrgetter("height"),
                                          max_value=kTreeMaxDepth))
-    tbox.decorate("mutate", gp.staticLimit(key=operator.attrgetter("height"),
-                                           max_value=kTreeMaxDepth)))
-
+    tbox.decorate("mutate", gp.staticLimit(key=operator.attrgetter("height"), 
+                                           max_value=kTreeMaxDepth))
 
     return tbox    
 
