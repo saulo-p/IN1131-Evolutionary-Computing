@@ -11,69 +11,160 @@ import operator
 from deap import base, creator, gp, tools
 import numpy as np
 from opencv import cv2
-from scipy.spatial.distance import pdist
+from scipy.spatial.distance import pdist, squareform
 
 import image_processing as imp 
 
-#>Functions (TODO: create separate file if necessary)
+#>About the training protocol:
+#The dataset is divided between Training and Test sets.
+#The Training set is randomly sampled to reduce the costs of evolution.
+# The samples are the random (small) subsets of training used to classification and 
+# fitness computation.
+
+class InstancesFeatures:
+    def __init__(self, n_instances, n_features):
+        self.class_ids_ = np.zeros(shape=n_instances, dtype=int)
+        self.class_instances_ = np.zeros(shape=n_instances, dtype=int)
+        self.feature_matrix_ = np.zeros(shape=(n_features, n_instances), dtype=int)
+        self.label_1nn_ = -1*np.ones(shape=n_instances, dtype=int)
+
+
+    def addInstance(self, idx, class_id, class_instance, features):
+        self.class_ids_[idx] = class_id
+        self.class_instances_[idx] = class_instance
+        self.feature_matrix_[:,idx] = features
+
+    def labelInstance(self, idx, label):
+        self.label_1nn_[idx] = label
+
+    def correctClassifications(self):
+        labels = np.zeros(shape=len(self.label_1nn_), dtype=int)
+        correct = 0
+        total = 0
+        for i in range(0, len(labels)):
+            if (self.label_1nn_[i] == -1):
+                labels[i] = -1
+            else:
+                total = total + 1
+                if self.class_ids_[i] == self.label_1nn_[i]:
+                    labels[i] = 1
+                    correct = correct + 1
+
+        acc = (1.0*correct)/total
+
+        return (labels, acc)
+
+    def numInstances(self):
+        return len(self.class_ids_)
+
+
+    def featuresMatrix(self):
+        return self.feature_matrix_
+
+
 def protectedDiv(num, den):
     try: return num/den
     except ZeroDivisionError: return 0
 
 def codeFunction(*args):
     return args
-#---------------------------------------------------
-#About primitives:
-# input types requires length (use lists)
-# input types use list but arguments are seen as separate elements
-# return type must be a class.
-# return type must be hashable, so lists which are dynamic elements are not allowed.
 
-def FitnessEvaluation(training_instances, eval_instances, code_size, window_size, toolbox, individual):
+def CzekanowskiDistance(u, v):
+    uv = np.matrix([u, v])
+    uv = np.min(uv, axis=0)
+    num = 2*np.sum(uv)
+    
+    den = np.sum(u) + np.sum(v)
+
+    return 1.0 - 1.0*num/den
+
+def FitnessEvaluation(rand_samples, n_tr_inst_p_class, code_size, window_size,
+                        toolbox, individual):
     """Individual fitness evaluation. Based on the classification capabilities."""
+    k_n_classes = len(rand_samples)
     #>Generate lambda expression of individual being evaluated
     ind_lambda = toolbox.compile(individual)
 
-    #>Compute feature vectors of the whole test set based on current individual
-    base_path = 'C:\Users\Saulo\Documents\GitHub\IN1131-Evolutionary-Computing\data\\brodatz\\resampled\D'
-    feature_vectors = []
-    test_set = []
-    eval_set = []
-    for t_i in training_instances:
-        for i in range(0, eval_instances):
+    #>Compute feature vectors of the whole test (training + eval) set based on
+    #  current individual and store the results on "test_set".
+    base_path = 'C:/Users/Saulo/Documents/GitHub/IN1131-Evolutionary-Computing/data/brodatz/resampled/D'
+    # feature_vectors = []
+    test_set = InstancesFeatures(k_n_classes*n_tr_inst_p_class, 2**code_size)
+    test_idx = 0
+    for r_s in rand_samples:
+        #TODO: Talvez trocar o range por percorrer as instancias do rand_samples
+        for i in range(0, n_tr_inst_p_class):
             if (i < 10):
                 str_idx = '0' + str(i)
             else:
                 str_idx = str(i)
 
             # Read patch image
-            img_path = base_path + str(t_i[0]) + '_' + str_idx[0]  + '_' + str_idx[1] + '.bmp'
+            img_path = base_path + str(r_s[0]) + '_' + str_idx[0]  + '_' + str_idx[1] + '.bmp'
             img = cv2.imread(img_path, cv2.IMREAD_GRAYSCALE)
 
+            # Compute patch feature vector 
             fv = FeatureExtraction(img, ind_lambda, code_size, window_size)
         
-            # Separate test and evaluation set
-            if (i in t_i[1]):
-                test_set = test_set + [((t_i[0], i), fv)]
-            else:
-                eval_set = eval_set + [((t_i[0], i), fv)]
+            # Fill the feature vector matrix
+            test_set.addInstance(test_idx, r_s[0], i, fv)
+            test_idx = test_idx + 1
+            # feature_vectors = feature_vectors + [((r_s[0], i), fv)]
+    # print feature_vectors
 
-            feature_vectors = feature_vectors + [((t_i[0], i), fv)]
+    #>Compute pdist and label each individual using 1NN
+    D = squareform(pdist(test_set.featuresMatrix().transpose()))
+    D_cze = squareform(pdist(test_set.featuresMatrix().transpose(), CzekanowskiDistance))
+    # print D
 
-    print feature_vectors         
+    #>Classify sampled instances using 1NN and computes cluster distances
+    db = 0.0
+    dw = 0.0
+    for i in range(0, k_n_classes):
+        for inst in rand_samples[i][1]:
+            # Resolve indexing
+            idx_d = i*n_tr_inst_p_class + inst
+            
+            #>Accuracy
+            # Euclidean distances between current instance and whole set
+            dists_z = D[idx_d]
+            dists = np.delete(dists_z, i)
+            min_idx = np.argmin(dists)
+            # Correct the index shift due to removal of self distance
+            if (min_idx >= idx_d):
+                min_idx = min_idx + 1
+            # Compute and store individual label
+            label = min_idx / n_tr_inst_p_class
+            test_set.labelInstance(idx_d, rand_samples[label][0])
 
-    #>Compute pdist between each individual of test set and whole evaluation set
-    for test_i in test_set:
-        #Create set with current individual + eval_set
-        #pdist()
-        print test_i
-    print 'bb'
-    #Label the individual
+            #>Distance
+            dists_cze_z = D_cze[idx_d] 
+            # Separates the distances
+            d_same = dists_cze_z[i*n_tr_inst_p_class:(i+1)*n_tr_inst_p_class]
+            d_diff = np.delete(dists_cze_z,
+                            range(i*n_tr_inst_p_class,
+                                  (i+1)*n_tr_inst_p_class))
+
+            db = db + np.min(d_diff)/(k_n_classes*n_tr_inst_p_class)
+            dw = dw + np.max(d_same)/(k_n_classes*n_tr_inst_p_class)
 
 
+    print 'End of Classification:'
+    print test_set.correctClassifications()
+
+    accuracy = test_set.correctClassifications()[1]
+    distance = 1.0/(1 + np.exp(-5.0*(db - dw)))
+
+    return (1.0 - (accuracy + distance)/2.0, )
 
 def CreatePrimitiveSet (window_size, code_size):
     """TODO: Talvez essa funcao deva ficar como script com import organizado..."""
+    #About primitives:
+    # input types requires length (use lists)
+    # input types use list but arguments are seen as separate elements
+    # return type must be a class.
+    # return type must be hashable, so lists which are dynamic elements are not allowed.
+    
     kCS = code_size
     kWS = window_size
 
@@ -95,7 +186,7 @@ def DefineEvolutionToolbox (primitive_set, training_instances, eval_instances,
     from file/struct"""
     #>Evolution parameters:
     kTreeMinDepth = 2
-    kTreeMaxDepth = 5           #TODO: 10    
+    kTreeMaxDepth = 5           #TODO: 10 
     #TODO: create enum for categorical parameters
     # kInitialization = 'genHalfAndHalf'
     # kSelection = 'selTournament'
@@ -127,14 +218,14 @@ def DefineEvolutionToolbox (primitive_set, training_instances, eval_instances,
 
 def FeatureExtraction(img, individual_lambda, code_size, window_size):
     """TODO: Create struct algorithm parameters to encapsulate CS and WS"""
-    kCS = code_size
+    kNF = 2**code_size
     kWS = window_size
 
     img_WH = img.shape
     height_w = img_WH[0] - kWS/2
     width_w = img_WH[1] - kWS/2
 
-    features = np.zeros(kCS**2, dtype=np.int)
+    features = np.zeros(kNF, dtype=np.int)
     # iterate over image pixels to fill the feature vector (histogram) 
     for r in range(kWS/2, height_w):
         for c in range(kWS/2, width_w):
@@ -153,7 +244,6 @@ def FeatureExtraction(img, individual_lambda, code_size, window_size):
 
 
     return features
-
 
 
 #> TEST SCRIPT: ----------------------------------------------------------------------
