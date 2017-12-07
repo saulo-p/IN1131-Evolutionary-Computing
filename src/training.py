@@ -7,7 +7,7 @@
 
 import random
 
-from deap import algorithms, tools
+from deap import algorithms, gp, tools
 import numpy as np
 
 import gpcriptor as gpc
@@ -15,24 +15,23 @@ import gpcriptor as gpc
 #>SCRIPT:------------------------------------------------------------------------------
 
 #>Training parameters----------------------
-kNClasses =                     112
-kNTrainingClasses =             20#3       #TODO: 20
+kNClassesDataset =              112
+kNTrainingClasses =             20      #TODO: 20
 kClassesSize =                  100
-kNTrainingInstancesPerClass =   2      
-kNSampleInstancesPerClass =     2       # kNSampleInstances < kNTrainingInstances
+kNTrainingInstances =           2       #instances per class
 #>Algorithm parameters:
-kCodeSize =                     5#2       #TODO: 7
-kWindowSize =                   3       #TODO: 5
+kCodeSize =                     7
+kWindowSize =                   5
 #>Evolution parameters:
-kPopSize =                      3       #TODO: 100
+kPopSize =                      50       #TODO: 100
 kXOverRate =                    0.8
 kMutRate =                      0.2
 kElitRate =                     0.01
-kMaxGenerations =               1#3       #TODO: 30
+kMaxGenerations =               5
 #------------------------------------------
 
 #>Training setup
-classes = range(1, kNClasses+1)
+classes = range(1, kNClassesDataset+1)
 del classes[14] #dataset problem
 
 # Randomize classes to use on experiment
@@ -40,30 +39,32 @@ sample_classes = random.sample(classes, kNTrainingClasses)
 sample_classes.sort()
 
 # For each selected class, randomize the training instances
-classes_n_samples = []
+sample_instances = []
 for i in sample_classes:
-    classes_n_samples = classes_n_samples + \
-        [(i, random.sample(range(0, kNTrainingInstancesPerClass),\
-        kNSampleInstancesPerClass))]
-print classes_n_samples
-
+    sample_instances = sample_instances + \
+        [(i, random.sample(range(0, kClassesSize/2), kNTrainingInstances))]
+print sample_instances
 
 #>Define Evolution framework
 pset = gpc.CreatePrimitiveSet(kWindowSize, kCodeSize)
-tbox = gpc.DefineEvolutionToolbox(pset, classes_n_samples, kNTrainingInstancesPerClass,
-                                    kCodeSize, kWindowSize)
+tbox = gpc.DefineEvolutionToolbox(pset, sample_instances, kCodeSize, kWindowSize)
 
 pop = tbox.generate_population(kPopSize)
-best = tools.HallOfFame(1)
+hof = tools.HallOfFame(1)
 
 # Define Log structure
-# stats_classrate = tools.Statistics(lambda ind: ind.fitness.values)
+stats_fit = tools.Statistics(lambda ind: ind.fitness.values)
+stats_size = tools.Statistics(lambda ind: ind.height)
+mstats = tools.MultiStatistics(fitness=stats_fit, height=stats_size)
+mstats.register("avg", np.mean)
+mstats.register("std", np.std)
+mstats.register("min", np.min)
+mstats.register("max", np.max)
 
 # Evolutionary algorithm call
 pop, log = algorithms.eaSimple(pop, tbox, kXOverRate, kMutRate, kMaxGenerations,
-                               #stats=mstats, 
-                               halloffame=best, verbose=True)
+                               stats=mstats, halloffame=hof, verbose=True)
 
-print '\nBest individual:\n', tbox.compile(pset, best)
+print '\nBest individual:\n', hof[0]
 
 

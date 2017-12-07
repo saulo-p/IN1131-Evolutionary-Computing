@@ -78,119 +78,113 @@ def CzekanowskiDistance(u, v):
 
     return 1.0 - 1.0*num/den
 
-def FitnessEvaluation(rand_samples, n_tr_inst_p_class, code_size, window_size,
-                        toolbox, individual):
+def FitnessEvaluation(train_samples, code_size, window_size, toolbox, individual):
     """Individual fitness evaluation. Based on the classification capabilities."""
-    k_n_classes = len(rand_samples)
+    kNClasses = len(train_samples)
+    kNInstances = len(train_samples[1])
+
     #>Generate lambda expression of individual being evaluated
     ind_lambda = toolbox.compile(individual)
 
-    #>Compute feature vectors of the whole test (training + eval) set based on
-    #  current individual and store the results on "test_set".
+    #>Compute feature vectors for all the images in the training set based on
+    #  current individual lambda and store the results on "train_set".
     base_path = 'C:/Users/Saulo/Documents/GitHub/IN1131-Evolutionary-Computing/data/brodatz/resampled/D'
-    # feature_vectors = []
-    test_set = InstancesFeatures(k_n_classes*n_tr_inst_p_class, 2**code_size)
-    test_idx = 0
-    for r_s in rand_samples:
-        #TODO: Talvez trocar o range por percorrer as instancias do rand_samples
-        for i in range(0, n_tr_inst_p_class):
-            if (i < 10):
-                str_idx = '0' + str(i)
+    train_set = InstancesFeatures(kNClasses*kNInstances, 2**code_size)
+    train_idx = 0
+    for t_s in train_samples:
+        for inst in t_s[1]:
+            if (inst < 10):
+                str_idx = '0' + str(inst)
             else:
-                str_idx = str(i)
+                str_idx = str(inst)
 
             # Read patch image
-            img_path = base_path + str(r_s[0]) + '_' + str_idx[0]  + '_' + str_idx[1] + '.bmp'
+            img_path = base_path + str(t_s[0]) + '_' + str_idx[0]  + '_' + str_idx[1] + '.bmp'
             img = cv2.imread(img_path, cv2.IMREAD_GRAYSCALE)
+            #TODO: talvez normalizar imagem de entrada.
 
             # Compute patch feature vector 
             fv = FeatureExtraction(img, ind_lambda, code_size, window_size)
         
             # Fill the feature vector matrix
-            test_set.addInstance(test_idx, r_s[0], i, fv)
-            test_idx = test_idx + 1
+            train_set.addInstance(train_idx, t_s[0], inst, fv)
+            train_idx = train_idx + 1
             # feature_vectors = feature_vectors + [((r_s[0], i), fv)]
     # print feature_vectors
 
     #>Compute pdist and label each individual using 1NN
-    D = squareform(pdist(test_set.featuresMatrix().transpose()))
-    D_cze = squareform(pdist(test_set.featuresMatrix().transpose(), CzekanowskiDistance))
+    D = squareform(pdist(train_set.featuresMatrix().transpose()))
+    D_cze = squareform(pdist(train_set.featuresMatrix().transpose(), CzekanowskiDistance))
     # print D
 
     #>Classify sampled instances using 1NN and computes cluster distances
     db = 0.0
     dw = 0.0
-    for i in range(0, k_n_classes):
-        for inst in rand_samples[i][1]:
-            # Resolve indexing
-            idx_d = i*n_tr_inst_p_class + inst
-            
-            #>Accuracy
-            # Euclidean distances between current instance and whole set
-            dists_z = D[idx_d]
-            dists = np.delete(dists_z, i)
-            min_idx = np.argmin(dists)
-            # Correct the index shift due to removal of self distance
-            if (min_idx >= idx_d):
-                min_idx = min_idx + 1
-            # Compute and store individual label
-            label = min_idx / n_tr_inst_p_class
-            test_set.labelInstance(idx_d, rand_samples[label][0])
 
-            #>Distance
-            dists_cze_z = D_cze[idx_d] 
-            # Separates the distances
-            d_same = dists_cze_z[i*n_tr_inst_p_class:(i+1)*n_tr_inst_p_class]
-            d_diff = np.delete(dists_cze_z,
-                            range(i*n_tr_inst_p_class,
-                                  (i+1)*n_tr_inst_p_class))
+    for i in range(0, len(D)):
+        #>Accuracy
+        dists_z = D[i]
+        dists = np.delete(dists_z, i)
+        min_idx = np.argmin(dists)
+        # Correct the index shift due to removal of self distance
+        if (min_idx >= i):
+            min_idx = min_idx + 1
+        # Compute and store individual label
+        label_idx = min_idx / kNInstances
+        train_set.labelInstance(i, train_samples[label_idx][0])
 
-            db = db + np.min(d_diff)/(k_n_classes*n_tr_inst_p_class)
-            dw = dw + np.max(d_same)/(k_n_classes*n_tr_inst_p_class)
+        #>Distance
+        dists_cze_z = D_cze[i]
+        mod_i = i/kNInstances
+        # Separates the distances in blocks from same class and others
+        d_same = dists_cze_z[mod_i*kNInstances:(mod_i+1)*kNInstances]
+        d_diff = np.delete(dists_cze_z, range(mod_i*kNInstances, (mod_i+1)*kNInstances))
+        
+        db = db + np.min(d_diff)
+        dw = dw + np.max(d_same)
 
+    db = db/(kNClasses*kNInstances)
+    dw = dw/(kNClasses*kNInstances)
 
-    print 'End of Classification:'
-    print test_set.correctClassifications()
+    # print 'End of Classification:'
+    # print train_set.correctClassifications()
 
-    accuracy = test_set.correctClassifications()[1]
+    accuracy = train_set.correctClassifications()[1]
     distance = 1.0/(1 + np.exp(-5.0*(db - dw)))
 
-    return (1.0 - (accuracy + distance)/2.0, )
+    fitness = 1.0 - (accuracy + distance)/2.0
+
+    return (fitness, )
 
 def CreatePrimitiveSet (window_size, code_size):
-    """TODO: Talvez essa funcao deva ficar como script com import organizado..."""
+    """SHIT!"""
     #About primitives:
     # input types requires length (use lists)
     # input types use list but arguments are seen as separate elements
     # return type must be a class.
     # return type must be hashable, so lists which are dynamic elements are not allowed.
-    
     kCS = code_size
     kWS = window_size
 
-    #>Function set (terminals come via evaluation)
-    pset = gp.PrimitiveSetTyped("GP-criptor", itertools.repeat(float, kWS**2), tuple, "Px")
-    # Arithmetic operations
+    pset = gp.PrimitiveSetTyped("GP-criptor", itertools.repeat(float, kWS**2), tuple, "P")
+    pset.addPrimitive(codeFunction, [float]*kCS, tuple)
     pset.addPrimitive(operator.add, [float, float], float)
     pset.addPrimitive(operator.sub, [float, float], float)
     pset.addPrimitive(operator.mul, [float, float], float)
     pset.addPrimitive(protectedDiv, [float, float], float)
-    # Root node
-    pset.addPrimitive(codeFunction, [float]*kCS, tuple)
 
     return pset
 
-def DefineEvolutionToolbox (primitive_set, training_instances, eval_instances,
-    code_size, window_size):
+def DefineEvolutionToolbox (primitive_set, training_instances, code_size, window_size):
     """TODO: Parameterize this function so it receives the evolution parameters 
     from file/struct"""
     #>Evolution parameters:
-    kTreeMinDepth = 2
-    kTreeMaxDepth = 5           #TODO: 10 
     #TODO: create enum for categorical parameters
     # kInitialization = 'genHalfAndHalf'
     # kSelection = 'selTournament'
-    kTournamentSize = 2         #TODO: 7
+    kTreeMinDepth = 2
+    kTreeMaxDepth = 10
+    kTournamentSize = 7
 
     creator.create("Fitness", base.Fitness, weights=(-1.0,))
     creator.create("Individual", gp.PrimitiveTree, fitness=creator.Fitness)
@@ -201,12 +195,12 @@ def DefineEvolutionToolbox (primitive_set, training_instances, eval_instances,
     tbox.register("generate_ind_tree", tools.initIterate, creator.Individual, 
                   tbox.generate_expr)
     tbox.register("generate_population", tools.initRepeat, list, tbox.generate_ind_tree)
-    tbox.register("compile", gp.compile, pset = primitive_set)
-    tbox.register("evaluate", FitnessEvaluation, training_instances, eval_instances,
-        code_size, window_size, tbox )
+    tbox.register("compile", gp.compile, pset=primitive_set)
+    tbox.register("evaluate", FitnessEvaluation, training_instances, code_size,
+                    window_size, tbox )
     tbox.register("select", tools.selTournament, tournsize=kTournamentSize)
     tbox.register("mate", gp.cxOnePoint)
-    tbox.register("expr_mut", gp.genFull, min_=0, max_=2)
+    tbox.register("expr_mut", gp.genFull, min_=0, max_=3, type_=float)
     tbox.register("mutate", gp.mutUniform, expr=tbox.expr_mut, pset=primitive_set)
     #enforce size constraint over generated individuals
     tbox.decorate("mate", gp.staticLimit(key=operator.attrgetter("height"),
@@ -241,7 +235,6 @@ def FeatureExtraction(img, individual_lambda, code_size, window_size):
             # print bin
 
             features[bin] = features[bin] + 1
-
 
     return features
 

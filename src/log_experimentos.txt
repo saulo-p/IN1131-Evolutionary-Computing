@@ -1,0 +1,30 @@
+TEST1:---------------------------------------
+kNClassesDataset =              112
+kNTrainingClasses =             10      
+kClassesSize =                  100
+kNTrainingInstances =           2       
+#>Algorithm parameters:
+kCodeSize =                     7
+kWindowSize =                   5
+#>Evolution parameters:
+kPopSize =                      30
+kXOverRate =                    0.8
+kMutRate =                      0.2
+kElitRate =                     0.01
+kMaxGenerations =               5
+
+*Executou em ~15min sendo ~9 pra primeira iteração
+e entre 1~2 pras demais.
+
+codeFunction(protectedDiv(P3, P9), mul(protectedDiv(P3, P13), add(P24, P4)), sub(P2, P12), sub(P12, P19), protectedDiv(P2, P16), P9, protectedDiv(add(P23, P23), sub(P4, P7)))
+--------------------------------------------
+Mudando para:
+kNTrainingClasses =             20
+kPopSize = 						50
+
+*Executou em  ~41min sendo ~28 pra primeira iteração
+e entre 2~3 pras demais
+
+codeFunction(protectedDiv(P17, P2), protectedDiv(P13, P9), protectedDiv(P11, P17), protectedDiv(P23, P22), sub(P13, P12), mul(P1, P19), protectedDiv(P17, P13))
+--------------------------------------------
+
