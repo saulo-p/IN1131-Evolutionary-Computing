@@ -27,4 +27,13 @@ e entre 2~3 pras demais
 
 codeFunction(protectedDiv(P17, P2), protectedDiv(P13, P9), protectedDiv(P11, P17), protectedDiv(P23, P22), sub(P13, P12), mul(P1, P19), protectedDiv(P17, P13))
 --------------------------------------------
+kNTrainingClasses =				15
+kCodeSize = 					6
+kPopSize = 						50
 
+*Executou em ~parei sendo ~22 pra primeira iteração
+e entre 4~5 pras demais
+--------------------------------------------
+
+
+rodar com   python  x.py > verbose.txt
