@@ -32,9 +32,6 @@ def CzekanowskiDistance(u, v):
     
     den = np.sum(u) + np.sum(v)
 
-    if (den == 0):
-        print 'TE FODE!'
-
     return 1.0 - 1.0*num/den
 
 

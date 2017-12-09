@@ -12,7 +12,7 @@ class InstancesFeatures:
         self.label_1nn_ = -1*np.ones(shape=n_instances, dtype=int)
 
     def populate(self, ind_lambda, sample_instances, window_size):
-        base_path = 'C:/Users/Saulo/Documents/GitHub/IN1131-Evolutionary-Computing/data/brodatz/resampled/D'
+        base_path = './../data/brodatz/resampled/D'
         set_idx = 0
         for s_i in sample_instances:
 

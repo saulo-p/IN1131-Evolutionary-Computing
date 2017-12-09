@@ -69,9 +69,9 @@ kNTrainingInstances =           2
 kCodeSize =                     5           #5-7
 kWindowSize =                   5           #5
 #>Evolution parameters:
-kPopSize =                      25           #25
+kPopSize =                      15           #25
 kXOverRate =                    0.8
-kMutRate =                      1 #0.2
+kMutRate =                      0.2
 kElitRate =                     0.01
 kMaxGenerations =               10           #30
 #-------------------------------------------------------
@@ -135,10 +135,9 @@ for n_cl in range(0, kNRoundsClasses):
 
         ind_lambda = tbox.compile(hof[0])
         accs[n_in] = ComputeAccuracyOverTestSet(ind_lambda, sample_instances, 10, kClassesSize/2, 2**kCodeSize, kWindowSize)
-    
-    print np.mean(accs) 
-    print np.std(accs)
+        print 'Accuracy = ' + accs[n_in]
+
+    print 'Accuracies = ', accs
+    print 'Mean = ', np.mean(accs)
+    print 'Std Dev = ', np.std(accs)
         
-
-
-
