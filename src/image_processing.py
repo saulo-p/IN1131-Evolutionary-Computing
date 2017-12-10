@@ -9,7 +9,7 @@ from opencv import cv2
 
 def LinearWindow(img, window_size, (row, col)):
     WS = window_size
-    window = img[row-WS/2:row+WS/2+1, col-WS/2:col+WS/2+1]
+    window = img[row-WS//2:row+WS//2+1, col-WS//2:col+WS//2+1]
     # cv2.imshow('Window',window)
     # cv2.waitKey(50)
     return window.reshape(1, WS**2)[0]

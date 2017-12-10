@@ -81,13 +81,13 @@ def FeatureExtraction(img, individual_lambda, features_len, window_size):
     kWS = window_size
 
     img_WH = img.shape
-    height_w = img_WH[0] - kWS/2
-    width_w = img_WH[1] - kWS/2
+    height_w = img_WH[0] - kWS//2
+    width_w = img_WH[1] - kWS//2
 
     features = np.zeros(kNF, dtype=np.int)
     # iterate over image pixels to fill the feature vector (histogram) 
-    for r in range(kWS/2, height_w):
-        for c in range(kWS/2, width_w):
+    for r in range(kWS//2, height_w):
+        for c in range(kWS//2, width_w):
             window = imp.LinearWindow(img, kWS, (r,c))
             
             bs = np.array(individual_lambda(*window))
