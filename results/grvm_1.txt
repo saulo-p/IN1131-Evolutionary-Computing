@@ -624,7 +624,7 @@ codeFunction(sub(protectedDiv(protectedDiv(P9, P23), mul(P13, P2)), protectedDiv
 0.672
 0.096
 
-++++++++++++++++++++++++++++++++++++++++++++
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 
 [(5, [3, 0]), (12, [13, 43]), (13, [33, 7]), (43, [35, 38]), (44, [14, 43]), (67, [25, 7]), (73, [5, 28]), (76, [21, 3]), (87, [19, 3]), (102, [18, 29])]
@@ -830,6 +830,21 @@ codeFunction(mul(P4, add(P5, P3)), mul(mul(protectedDiv(P10, P5), add(mul(P18, P
 Accuracy =  0.68
 
 
+===========================================================================================================
+Parte 1:
+Accuracies = [ 0.76  0.69  0.66  0.72  0.54  0.67  0.66  0.57  0.53  0.87  0.59  0.57  0.7   0.75  0.8 ]
+Mean =  0.672
+Std Dev =  0.096
+Parte 2:
 Accuracies = [ 0.85  0.71  0.69  0.59  0.68]
 Mean =  0.704
 Std Dev =  0.083809307359
+
+
+Iterações totais 20
+Mean = 0.68
+Std dev = 0.0966
+Best = 0.87
+codeFunction(mul(protectedDiv(P12, P0), add(sub(mul(P1, P19), P15), protectedDiv(P22, protectedDiv(P12, P20)))), protectedDiv(protectedDiv(P1, protectedDiv(P2, P22)), protectedDiv(protectedDiv(P8, P24), add(sub(protectedDiv(P23, P22), P23), P23))), mul(P13, sub(protectedDiv(protectedDiv(P16, P22), P12), add(P0, P15))), protectedDiv(P21, P7), protectedDiv(P8, P24), mul(add(P21, add(P2, add(P0, P23))), protectedDiv(P12, sub(P22, P2))), protectedDiv(sub(add(P7, P18), protectedDiv(sub(sub(protectedDiv(P6, P10), protectedDiv(P1, P17)), protectedDiv(add(P15, P6), sub(P18, P8))), P19)), mul(mul(P11, P0), sub(P22, P23))))
+
+===========================================================================================================
