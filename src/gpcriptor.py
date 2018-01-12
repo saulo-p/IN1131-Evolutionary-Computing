@@ -143,9 +143,9 @@ def FitnessEvaluationMod(train_samples, feature_size, window_size, toolbox,
 
     accuracy = train_set.correctClassifications()[1]
     distance = 1.0/(1 + np.exp(-5.0*(db - dw)))
-    op_control = 1.0*(max_len - len(individual))/(max_len - min_len)
+    density = 1.0*(max_len - len(individual))/(max_len - min_len)
 
-    fitness = 1.0 - (accuracy + distance + op_control)/3.0
+    fitness = 1.0 - (accuracy + distance + density)/3.0
 
     return (fitness, )
 
@@ -196,10 +196,10 @@ def DefineEvolutionToolbox (primitive_set, training_instances, feature_size, win
                   tbox.generate_expr)
     tbox.register("generate_population", tools.initRepeat, list, tbox.generate_ind_tree)
     tbox.register("compile", gp.compile, pset=primitive_set)
-    # tbox.register("evaluate", FitnessEvaluation, training_instances, feature_size,
-    #                 window_size, tbox )
-    tbox.register("evaluate", FitnessEvaluationMod, training_instances, feature_size,
-                window_size, tbox, min_len, max_len )
+    tbox.register("evaluate", FitnessEvaluation, training_instances, feature_size,
+                    window_size, tbox )
+    # tbox.register("evaluate", FitnessEvaluationMod, training_instances, feature_size,
+    #             window_size, tbox, min_len, max_len )
     tbox.register("select", tools.selTournament, tournsize=kTournamentSize)
     tbox.register("mate", gp.cxOnePoint)
     tbox.register("expr_mut", gp.genFull, min_=1, max_=3, type_=float)

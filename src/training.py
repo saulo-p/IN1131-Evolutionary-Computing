@@ -37,7 +37,9 @@ kPopSize =                      25           #25
 kXOverRate =                    0.8
 kMutRate =                      0.2
 kElitRate =                     0.01
-kMaxGenerations =               15           #30
+kMaxGenerations =               10           #30
+
+kNTestInstances =               30
 #-------------------------------------------------------
 
 def ComputeAccuracyOverTestSet(best_ind, training_instances, n_test_instances, test_base_idx,
@@ -74,7 +76,7 @@ def ComputeAccuracyOverTestSet(best_ind, training_instances, n_test_instances, t
     return test_set.correctClassifications()[1]
 
 kFeatureSize = 2**kCodeSize
-print 'Parameters: \n(classes = ' + str(kNTrainingClasses) + ' code = ' + str(kCodeSize) + ' pop = ' +  str(kPopSize) + ' gen = ' + str(kMaxGenerations) + ')\n'
+print 'Parameters: \n(classes = ' + str(kNTrainingClasses) + ' code = ' + str(kCodeSize) + ' pop = ' +  str(kPopSize) + ' gen = ' + str(kMaxGenerations) + ' tests_insts = ' + str(kNTestInstances) + ')\n'
 
 classes = range(1, kNClassesDataset+1)
 del classes[13] #dataset problem
@@ -90,7 +92,7 @@ for n_cl in range(0, kNRoundsClasses):
     for i in sample_classes:
         sample_instances = sample_instances + \
             [(i, random.sample(range(0, kClassesSize//2), kNTrainingInstances))]    
-    sample_instances = [(5, [3, 0]), (12, [13, 43]), (13, [33, 7]), (43, [35, 38]), (44, [14, 43]), (67, [25, 7]), (73, [5, 28]), (76, [21, 3]), (87, [19, 3]), (102, [18, 29])]
+    sample_instances = [(13, [17, 31]), (17, [6, 45]), (49, [0, 15]), (68, [34, 35]), (82, [26, 43]), (87, [14, 45]), (97, [14, 21]), (100, [21, 27]), (106, [23, 37]), (112, [10, 7])]
     print sample_instances
 
     #>Define Evolution framework
@@ -135,7 +137,8 @@ for n_cl in range(0, kNRoundsClasses):
         # fh_hof.close()
 
         ind_lambda = tbox.compile(hof[0])
-        accs[n_in] = ComputeAccuracyOverTestSet(ind_lambda, sample_instances, 10, kClassesSize//2, kFeatureSize, kWindowSize)
+        accs[n_in] = ComputeAccuracyOverTestSet(ind_lambda, sample_instances, kNTestInstances,
+                                             kClassesSize//2, kFeatureSize, kWindowSize)
         print 'Accuracy = ', accs[n_in]
 
     print 'Accuracies = ', accs
